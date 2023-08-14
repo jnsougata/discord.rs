@@ -1,0 +1,18 @@
+v: 0
+micros:
+  - name: backend
+    src: .
+    engine: custom
+    dev: cargo run
+    public: true
+    commands:
+      - cargo build --release
+      - mv ./target/release/ruscord .
+    run: ./ruscord
+    include:
+      - ruscord
+    presets:
+      env:
+        - name: PUBLIC_KEY
+        - name: DISCORD_TOKEN
+        - name: APPLICATION_ID
