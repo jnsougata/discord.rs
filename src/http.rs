@@ -6,7 +6,6 @@ pub (crate) struct HttpClient {
     pub (crate) host: String,
     pub (crate) token: String,
     pub (crate) application_id: String,
-    client : reqwest::Client
 }
 
 impl HttpClient {
@@ -14,8 +13,7 @@ impl HttpClient {
         HttpClient {
             host: host.to_string(),
             application_id,
-            token,
-            client: reqwest::Client::new()
+            token
         }
     }
     async fn request(
@@ -26,23 +24,25 @@ impl HttpClient {
         content_type: Option<&str>, 
         use_auth: bool
     ) -> Value {
-        let mut builder = self.client.request(
-            reqwest::Method::from_bytes(method.as_bytes()).unwrap(),
-            format!("https://{}{}", self.host, path)
+
+        let mut client = reqwest::Client::new()
+        .request(
+            reqwest::Method::from_bytes(method.as_bytes()).unwrap(), 
+            format!("https://{}{}", self.host, path).as_str()
         );
+        client = match body {
+            Some(body) => client.json(&body),
+            None =>  client
+        };
+
         if use_auth {
-            builder = builder.header("Authorization", format!("Bot {}", self.token));
+            client = client.header("Authorization", format!("Bot {}", self.token).as_str());
         }
-        let builder = match content_type {
-            Some(content_type) => builder.header("Content-Type", content_type),
-            None => builder.header("Content-Type", "application/json")
+        client = match content_type {
+            Some(content_type) => client.header("Content-Type", content_type),
+            None => client.header("Content-Type", "application/json")
         };
-        let builder = match body {
-            Some(body) => builder.body(body.to_string()),
-            None => builder
-        };
-        let response = builder.send().await.unwrap();
-        return response.json().await.unwrap();
+        client.send().await.unwrap().json().await.unwrap()
     }
 
     pub (crate) async fn register_commands(&self, commands: Value) -> Value {

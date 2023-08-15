@@ -31,7 +31,6 @@ impl AppState {
 
     pub async fn sync(self) {
         let commands = serde_json::to_value(&self.commands).unwrap();
-        println!("{:?}", commands);
-        println!("{}", self.http.register_commands(commands).await)
+        self.http.register_commands(commands).await;
     }
 }
