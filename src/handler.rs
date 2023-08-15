@@ -30,9 +30,8 @@ pub (crate) async fn handler(
 
     let interaction = serde_json::from_slice::<Interaction>(&data).unwrap();
 
-    match InteractionType::try_from(interaction.kind).unwrap()  {
+    match interaction.kind {
         InteractionType::Ping => {
-            println!("{}", json!({"type": InteractionCallbackType::Pong }));
             return (StatusCode::OK, Json(json!({"type": InteractionCallbackType::Pong as u8 })));
         },
         InteractionType::ApplicationCommand => {

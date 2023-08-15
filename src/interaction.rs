@@ -1,5 +1,6 @@
 use serde_json::Value;
 use serde::Deserialize;
+use crate::enums::InteractionType;
 
 #[derive(Deserialize, Debug)]
 #[non_exhaustive]
@@ -11,7 +12,7 @@ pub struct Interaction {
     pub channel_id: Option<String>,
 
     #[serde(rename = "type")]
-    pub kind: u8,
+    pub kind: InteractionType,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<Value>,
