@@ -1,39 +1,39 @@
+use hyper;
 use axum::{
-    extract::{Json, State}, 
+    extract::{Json, State, RawBody}, 
     http::{header::HeaderMap, StatusCode},
 };
 use serde_json;
 use serde_json::{Value, json};
-use ed25519_dalek::{Signature, SigningKey};
-use crate::enums::InteractionType;
+use crate::enums::{InteractionType, InteractionCallbackType};
 use crate::interaction::Interaction;
-use crate::state::AppState;
+use crate::app::AppState;
+use crate::utils::verify_signature;
 
 
 pub (crate) async fn handler(
     headers: HeaderMap,
     State(state): State<AppState>, 
-    payload: Json<Value>
+    RawBody(body): RawBody,
 ) -> (StatusCode, Json<Value>){
-    let signature = headers.get("X-Signature-Ed25519").unwrap();
-    let timestamp = headers.get("X-Signature-Timestamp").unwrap();
-    let signature_bytes = signature.as_bytes();
-    let timestamp_bytes = timestamp.as_bytes();
-    let public_key_bytes: &[u8; 32] = state.public_key.as_bytes().try_into().unwrap();
-    let mut message = Vec::new();
-    message.extend_from_slice(timestamp_bytes);
-    message.extend_from_slice(payload.to_string().as_bytes());
-    let signature = Signature::from_slice(signature_bytes).unwrap();
-    let public_key = SigningKey::from_bytes(&public_key_bytes);
-    let verified = public_key.verify(&message, &signature);
-    if !verified.is_ok() {
+    let data = hyper::body::to_bytes(body).await.unwrap();
+
+    let public_key_hex = state.public_key.as_str();
+    let signature_hex = headers.get("X-Signature-Ed25519").unwrap().to_str().unwrap();
+    let timestamp = headers.get("X-Signature-Timestamp").unwrap().as_bytes();
+
+    let result = verify_signature(signature_hex, public_key_hex, &data, timestamp);
+   
+    if !result{
         return (StatusCode::UNAUTHORIZED, Json(json!({"error": "BadSignature"})));
     }
-    let interaction: Interaction = serde_json::from_value(payload.0).unwrap();
 
-    match interaction.r#type {
+    let interaction = serde_json::from_slice::<Interaction>(&data).unwrap();
+
+    match InteractionType::try_from(interaction.kind).unwrap()  {
         InteractionType::Ping => {
-            return (StatusCode::OK, Json(json!({"type": InteractionType::Ping})));
+            println!("{}", json!({"type": InteractionCallbackType::Pong }));
+            return (StatusCode::OK, Json(json!({"type": InteractionCallbackType::Pong as u8 })));
         },
         InteractionType::ApplicationCommand => {
             return (

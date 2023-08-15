@@ -1,29 +1,25 @@
 use axum::{
     Router,
     routing::get,
-    routing::post,
 };
 mod handler;
 pub mod enums;
 mod interaction;
-mod state;
+mod app;
+mod utils;
 
 #[tokio::main]
 async fn main() {
 
-    let state = state::AppState{
+    let state = app::AppState{
         public_key: std::env::var("PUBLIC_KEY").unwrap().to_string(),
         token: std::env::var("DISCORD_TOKEN").unwrap() .to_string(),
         application_id: std::env::var("APPLICATION_ID").unwrap() .to_string(),
-        path: "/interactions".to_string(),
-        port: 8080,
+        interaction_path: "/interactions".to_string(),
     };
-    let app = Router::new()
-        .route("/", get(|| async { "Hello, World!" }))
-        .route(&state.path.clone(), post(handler::handler).with_state(state));
-    axum::Server::bind(&"0.0.0.0:8080".parse().unwrap())
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
+    app::App::new(state)
+    .extend(
+        Router::new().route("/", get(|| async { "Hello, World!" }))
+    )
+    .run(8080).await;
 }
-
