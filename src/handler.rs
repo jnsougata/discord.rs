@@ -7,7 +7,7 @@ use serde_json;
 use serde_json::{Value, json};
 use crate::enums::{InteractionType, InteractionCallbackType};
 use crate::interaction::Interaction;
-use crate::app::AppState;
+use crate::state::AppState;
 use crate::utils::verify_signature;
 
 

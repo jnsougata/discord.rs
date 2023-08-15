@@ -5,14 +5,8 @@ use axum::{
     Router,
     routing::post,
 };
+use crate::state::AppState;
 
-#[derive(Clone, Debug)]
-pub struct AppState {
-    pub public_key: String,
-    pub token: String,
-    pub application_id: String,
-    pub interaction_path: String,
-}
 
 pub struct App {
     state: AppState,
