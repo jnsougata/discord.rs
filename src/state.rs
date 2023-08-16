@@ -1,6 +1,9 @@
-use crate::http::HttpClient;
-use crate::command::ApplicationCommand;
 use serde_json;
+
+use crate::{
+    http::HttpClient,
+    command::ApplicationCommand,
+};
 
 
 #[derive(Clone, Debug)]

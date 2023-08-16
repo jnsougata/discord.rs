@@ -7,10 +7,10 @@ micros:
     public: true
     commands:
       - cargo build --release
-      - mv ./target/release/ruscord .
-    run: ./ruscord
+      - mv ./target/release/discord_rs .
+    run: ./discord_rs
     include:
-      - ruscord
+      - discord_rs
     presets:
       env:
         - name: PUBLIC_KEY

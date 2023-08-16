@@ -5,10 +5,13 @@ use axum::{
 };
 use serde_json;
 use serde_json::{Value, json};
-use crate::enums::{InteractionType, InteractionCallbackType};
-use crate::interaction::Interaction;
-use crate::state::AppState;
-use crate::utils::verify_signature;
+use crate::{
+    state::AppState,
+    utils::verify_signature,
+    interaction::Interaction,
+    enums::{InteractionType, InteractionCallbackType},
+};
+
 
 
 pub (crate) async fn handler(
@@ -32,7 +35,7 @@ pub (crate) async fn handler(
 
     match interaction.kind {
         InteractionType::Ping => {
-            return (StatusCode::OK, Json(json!({"type": InteractionCallbackType::Pong as u8 })));
+            return (StatusCode::OK, Json(json!({"type": InteractionCallbackType::Pong})));
         },
         InteractionType::ApplicationCommand => {
             return (

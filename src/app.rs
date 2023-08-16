@@ -1,12 +1,14 @@
 use std::net::SocketAddr;
 
-use crate::handler;
 use axum::{
     Router,
     routing::post,
 };
-use crate::state::AppState;
 
+use crate::{
+    handler::handler,
+    state::AppState,
+};
 
 pub struct App {
     state: AppState,
@@ -28,7 +30,7 @@ impl App {
 
     pub async fn run(&self, port: u16,) {
         let route = self.router.clone()
-            .route(&self.state.interaction_path, post(handler::handler).with_state(self.state.clone()));
+            .route(&self.state.interaction_path, post(handler).with_state(self.state.clone()));
         axum::Server::bind(&format!("0.0.0.0:{}", port).to_string().parse::<SocketAddr>().unwrap())
         .serve(route.into_make_service())
         .await

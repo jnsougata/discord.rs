@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-
 #[derive(Serialize, Debug)]
 #[repr(u8)]
 pub enum InteractionType {
@@ -32,7 +31,7 @@ impl<'de> Deserialize<'de> for InteractionType {
 }
    
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum InteractionCallbackType {
     Pong = 1,
     ChannelMessageWithSource = 4,
@@ -41,4 +40,56 @@ pub enum InteractionCallbackType {
     UpdateMessage,
     ApplicationCommandAutocompleteResult,
     Modal,
+}
+
+impl Serialize for InteractionCallbackType {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::ser::Serializer,
+    {
+        serializer.serialize_u8(*self as u8)
+    }
+}
+
+#[derive(Debug, Clone, Copy, Default)]
+#[repr(u8)]
+pub enum ApplicationCommandType {
+    #[default]
+    Slash = 1,
+    User,
+    Message,
+
+}
+
+impl Serialize for ApplicationCommandType {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::ser::Serializer,
+    {
+        serializer.serialize_u8(*self as u8)
+    }
+}
+
+#[derive(Debug, Clone, Copy, Default)]
+#[repr(u8)]
+pub enum ApplicationCommandOptionType {
+    #[default]
+    String=3,
+    Integer,
+    Boolean,
+    User,
+    Channel,
+    Role,
+    Mentionable,
+    Number,
+    Attachment,
+}
+
+impl Serialize for ApplicationCommandOptionType {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::ser::Serializer,
+    {
+        serializer.serialize_u8(*self as u8)
+    }
 }
