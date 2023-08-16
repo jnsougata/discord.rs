@@ -1,7 +1,9 @@
+use std::sync::{Arc};
 use axum::{
     Router,
     routing::get,
 };
+use crate::interaction::Interaction;
 
 mod handler;
 pub mod enums;
@@ -19,27 +21,37 @@ async fn main() {
         kind: enums::ApplicationCommandType::Slash,
         name: "ping".to_string(),
         description: "ping the bot".to_string(),
-        ..Default::default()
+        options: None,
+        dm_permissions: None,
+        nsfw: None,
+        default_member_permissions: None,
+        callback: Arc::new(Box::new(|_interaction: Interaction| {
+            (
+                axum::http::StatusCode::OK,
+                axum::Json(
+                    serde_json::json!(
+                        {
+                            "type": enums::InteractionCallbackType::ChannelMessageWithSource,
+                            "data": {
+                                "content": "Pong!"
+                            }
+                        }
+                    )
+                )
+            )
+        })),
     };
 
-    println!("{:?}", serde_json::to_string(&cmd).unwrap());
-
-    let mut state = state::AppState::new(
+    app::App::new(
         std::env::var("PUBLIC_KEY").unwrap().to_string(),
         std::env::var("DISCORD_TOKEN").unwrap() .to_string(),
         std::env::var("APPLICATION_ID").unwrap() .to_string(),
         "/interactions".to_string(),
-    );
-    state.add_command(cmd);
-    state.clone().sync().await;
-    app::App::new(state.clone())
-    .extend(
+    )
+        .extend(
         Router::new()
             .route("/", get(|| async { "Hello, World!" }))
-            .route("/sync", get(|| async move {
-                state.clone().sync().await;
-                "synced"
-            })) 
-    )
-    .run(8080).await;
+        )
+        .add_command(cmd)
+        .run(8080).await;
 }

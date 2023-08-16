@@ -2,7 +2,7 @@ use serde_json::Value;
 use serde::Deserialize;
 use crate::enums::InteractionType;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[non_exhaustive]
 pub struct Interaction {
     pub id: String,

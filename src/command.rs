@@ -1,7 +1,14 @@
+use std::sync::Arc;
 use serde::Serialize;
 use crate::{
+    interaction::Interaction,
     enums::{ApplicationCommandType, ApplicationCommandOptionType},
 };
+use axum::{
+    extract::Json,
+    http::StatusCode,
+};
+use serde_json::{Value};
 
 
 #[derive(Debug, Clone, Serialize)]
@@ -164,7 +171,7 @@ impl ApplicationCommandOption {
 }
 
 
-#[derive(Debug, Clone, Serialize, Default)]
+#[derive(Serialize, Clone)]
 pub struct ApplicationCommand {
     #[serde(rename = "type")]
     pub kind: ApplicationCommandType,
@@ -176,4 +183,16 @@ pub struct ApplicationCommand {
     pub nsfw: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub options: Option<Vec<ApplicationCommandOption>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub default_member_permissions: Option<String>,
+    #[serde(skip_serializing)]
+    pub callback: Arc<Box<dyn Fn(Interaction) -> (StatusCode, Json<Value>) + Send + Sync>>,
+}
+
+impl ApplicationCommand {
+    pub fn on_interaction<F>(mut self, f: F) -> Self
+    where F: Fn(Interaction) -> (StatusCode, Json<Value>) + Send + Sync + 'static{
+        self.callback = Arc::new(Box::new(f));
+        self
+    }
 }

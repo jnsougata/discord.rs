@@ -16,11 +16,10 @@ use crate::{
 
 pub (crate) async fn handler(
     headers: HeaderMap,
-    State(state): State<AppState>, 
+    State(state): State<AppState>,
     RawBody(body): RawBody,
 ) -> (StatusCode, Json<Value>){
     let data = hyper::body::to_bytes(body).await.unwrap();
-
     let public_key_hex = state.public_key.as_str();
     let signature_hex = headers.get("X-Signature-Ed25519").unwrap().to_str().unwrap();
     let timestamp = headers.get("X-Signature-Timestamp").unwrap().as_bytes();
@@ -38,15 +37,10 @@ pub (crate) async fn handler(
             return (StatusCode::OK, Json(json!({"type": InteractionCallbackType::Pong})));
         },
         InteractionType::ApplicationCommand => {
-            return (
-                StatusCode::OK, 
-                Json(json!({
-                    "type": 4,
-                    "data": {
-                        "content": "Hello, World!"
-                    }
-                }))
-            );
+            let name = interaction.data.as_ref().unwrap()["name"].as_str().unwrap();
+            let command = state.factory.get(name).unwrap().callback.clone();
+            let (status, Json(json)) = command(interaction);
+            return (status, Json(json));
         },
         InteractionType::MessageComponent => todo!(),
         InteractionType::ApplicationCommandAutocomplete => todo!(),
