@@ -54,4 +54,14 @@ impl HttpClient {
         ).await
     }
 
+    pub (crate) async fn post_interaction_callback(&self, token: String, id: String, payload: Value) -> Value {
+        self.clone().request(
+            "POST", 
+            format!("/interactions/{}/{}/callback",id,token).as_str(), 
+            Some(payload), 
+            None, 
+            false
+        ).await
+    }
+
 }

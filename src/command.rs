@@ -1,14 +1,11 @@
-use std::sync::Arc;
+use std::{future::Future, clone::Clone, sync::Arc, pin::Pin};
 use serde::Serialize;
 use crate::{
     interaction::Interaction,
     enums::{ApplicationCommandType, ApplicationCommandOptionType},
 };
-use axum::{
-    extract::Json,
-    http::StatusCode,
-};
-use serde_json::{Value};
+use serde_json::Value;
+use tokio::task;
 
 
 #[derive(Debug, Clone, Serialize)]
@@ -186,13 +183,20 @@ pub struct ApplicationCommand {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default_member_permissions: Option<String>,
     #[serde(skip_serializing)]
-    pub callback: Arc<Box<dyn Fn(Interaction) -> (StatusCode, Json<Value>) + Send + Sync>>,
+    pub callback:  Arc<dyn Fn(Interaction) -> Pin<Box<dyn Future<Output = Value>>> + Send + Sync>,
 }
 
+
 impl ApplicationCommand {
-    pub fn on_interaction<F>(mut self, f: F) -> Self
-    where F: Fn(Interaction) -> (StatusCode, Json<Value>) + Send + Sync + 'static{
-        self.callback = Arc::new(Box::new(f));
-        self
+    pub fn invoke(&self, interaction: Interaction) -> Value {
+        let callback = self.callback.clone();
+
+        let result = task::block_in_place(|| {
+            let future = callback(interaction);
+            tokio::runtime::Handle::current().block_on(async {
+                future.await
+            })
+        });
+        result
     }
 }

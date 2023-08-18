@@ -30,21 +30,22 @@ pub (crate) async fn handler(
         return (StatusCode::UNAUTHORIZED, Json(json!({"error": "BadSignature"})));
     }
 
-    let interaction = serde_json::from_slice::<Interaction>(&data).unwrap();
+    let mut interaction = serde_json::from_slice::<Interaction>(&data).unwrap();
+    interaction.state = Some(state.clone());
 
     match interaction.kind {
         InteractionType::Ping => {
             return (StatusCode::OK, Json(json!({"type": InteractionCallbackType::Pong})));
         },
         InteractionType::ApplicationCommand => {
-            let name = interaction.data.as_ref().unwrap()["name"].as_str().unwrap();
-            let command = state.factory.get(name).unwrap().callback.clone();
-            let (status, Json(json)) = command(interaction);
-            return (status, Json(json));
+            let data = interaction.data.as_ref().unwrap().clone();
+            let command_ref_key = format!("{}:{}", data.name, data.kind as u8);
+            println!("{}", command_ref_key);
+            _ = state.factory.get(&command_ref_key).unwrap().invoke(interaction.clone());
+            return (axum::http::StatusCode::OK, Json(json!({"message": "sent"})));
         },
         InteractionType::MessageComponent => todo!(),
         InteractionType::ApplicationCommandAutocomplete => todo!(),
         InteractionType::ModalSubmit => todo!(),
     }
-    
 }

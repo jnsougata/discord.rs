@@ -46,7 +46,8 @@ impl App {
 
     pub fn add_command(mut self, command: ApplicationCommand) -> Self{
         self.state.commands.push(serde_json::to_value(&command).unwrap());
-        self.state.factory.insert(command.name.clone(), command);
+        let key = format!("{}:{}", command.name.clone(), command.kind.clone() as u8);
+        self.state.factory.insert(key, command);
         self
     }
 

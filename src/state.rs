@@ -8,8 +8,10 @@ use serde_json::Value;
 
 #[derive(Clone)]
 pub struct AppState {
+    #[allow(dead_code)]
     pub (crate) token: String,
     pub (crate) public_key: String,
+    #[allow(dead_code)]
     pub (crate) application_id: String,
     pub (crate) commands: Vec<Value>,
     pub (crate) http: HttpClient,

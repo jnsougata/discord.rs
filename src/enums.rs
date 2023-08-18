@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Debug, Clone)]
+#[derive(Serialize, Clone)]
 #[repr(u8)]
 pub enum InteractionType {
     Ping = 1,
