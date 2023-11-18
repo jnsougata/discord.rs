@@ -1,1 +1,1 @@
-# discord.rs
+# interaction.rs (WIP)
